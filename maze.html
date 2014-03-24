@@ -1,0 +1,132 @@
+<html>
+  <head>
+    <title>Mira's &amp; Mark's Maze Collection!</title>
+  </head>
+  <body>
+    <h1>Mira's &amp; Mark's Maze Collection!</h1>
+    <canvas id="maze" width="600" height="600">
+    </canvas>
+    <script>
+      // Functions to give an index in the edges array.
+      // The maze is m x n and the cell is (i, j).
+      function topEdge(m, n, i, j) {
+        return i * (2 * n + 1) + j;
+      }
+      function leftEdge(m, n, i, j) {
+        return topEdge(m, n, i, j) + n;
+      }
+      function rightEdge(m, n, i, j) {
+        return leftEdge(m, n, i, j + 1);
+      }
+      function bottomEdge(m, n, i, j) {
+        return topEdge(m, n, i + 1, j);
+      }
+
+      // Draws the m x n edges array |e| on the 2D context |ctx|.
+      function drawEdges(ctx, m, n, e) {
+        var width = 600 / n;
+        var height = 600 / m;
+        for (var i = 0; i < m; i++) {
+          for (var j = 0; j < n; j++) {
+            if (e[topEdge(m, n, i, j)]) {
+              ctx.moveTo(i * height, j * width);
+              ctx.lineTo(i * height, (j + 1) * width);
+              ctx.stroke();
+            }
+            if (e[leftEdge(m, n, i, j)]) {
+              ctx.moveTo(i * height, j * width);
+              ctx.lineTo((i + 1) * height, j * width);
+              ctx.stroke();
+            }
+          }
+          if (e[rightEdge(m, n, i, n - 1)]) {
+            ctx.moveTo(i * height, n * width);
+            ctx.lineTo((i + 1) * height, n * width);
+            ctx.stroke();
+          }
+        }
+        for (var j = 0; j < n; j++) {
+          if (e[bottomEdge(m, n, m - 1, j)]) {
+            ctx.moveTo(m * height, j * width);
+            ctx.lineTo(m * height, (j + 1) * width);
+            ctx.stroke();
+          }
+        }
+      }
+
+      function initEdges(m, n) {
+        var numEdges = bottomEdge(m, n, m - 1, n - 1);
+        var edges = new Array(numEdges);
+        for (var x = 1; x < numEdges - 1; x++) {
+          edges[x] = true;
+        }
+        return edges;
+      }
+
+      function shuffleArray(array) {
+        for (var i = array.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var temp = array[i];
+          array[i] = array[j];
+          array[j] = temp;
+        }
+        return array;
+      }
+
+      function generateMaze(e, m, n) {
+        var visited = new Array(m);
+        for (var i = 0; i < m; i++) {
+          visited[i] = new Array(n);
+          for (var j = 0; j < n; j++) {
+            visited[i][j] = false;
+          }
+        }
+        s = [];
+        s.push([Math.floor(Math.random() * m),
+                Math.floor(Math.random() * n)]);
+        visited[s[0][0]][s[0][1]] = true;
+        while (s.length > 0) {
+          var elt = s.pop();
+          i = elt[0];
+          j = elt[1];
+          neighbors = [];
+          if (i > 0) neighbors.push([i - 1, j]);
+          if (i < m - 1) neighbors.push([i + 1, j]);
+          if (j > 0) neighbors.push([i, j - 1]);
+          if (j < n - 1) neighbors.push([i, j + 1]);
+          shuffleArray(neighbors);
+          for (k = 0; k < neighbors.length; k++) {
+            var tmp = neighbors[k];
+            var ni = tmp[0];
+            var nj = tmp[1];
+            if (visited[ni][nj]) {
+              continue;
+            }
+            visited[ni][nj] = true;
+            if (ni == i - 1) {
+              e[topEdge(m, n, i, j)] = false;
+            } else if (ni == i + 1) {
+              e[bottomEdge(m, n, i, j)] = false;
+            } else if (nj == j - 1) {
+              e[leftEdge(m, n, i, j)] = false;
+            } else if (nj == j + 1) {
+              e[rightEdge(m, n, i, j)] = false;
+            }
+            s.push([ni, nj]);
+          }
+        }
+      }
+
+      // The dimensions of the maze.
+      var m = 30;  // rows
+      var n = 30;  // columns
+
+      var edges = initEdges(m, n);
+      generateMaze(edges, m, n);
+
+      var c = document.getElementById("maze");
+      var ctx = c.getContext("2d");
+      drawEdges(ctx, m, n, edges);
+    </script>
+  </body>
+</html>
